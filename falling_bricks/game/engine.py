@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
 
-from falling_bricks.models.brick import BrickTemplate
+from falling_bricks.models.brick import Brick
 from falling_bricks.models.field import Field
 from falling_bricks.game.commands import Command
 from falling_bricks.game.match_detector import MatchDetector
@@ -22,7 +22,7 @@ class GameState(Enum):
 class ActiveBrick:
     """A brick template placed at a specific (row, col) position."""
 
-    template: BrickTemplate
+    template: Brick
     row: int
     col: int
 
@@ -55,7 +55,7 @@ class GameEngine:
       automatically.  If it cannot descend, it settles onto the field.
     """
 
-    def __init__(self, field: Field, brick_templates: List[BrickTemplate]) -> None:
+    def __init__(self, field: Field, brick_templates: List[Brick]) -> None:
         self._field = field
         self._templates = list(brick_templates)
         self._match_detector = MatchDetector()
@@ -175,7 +175,7 @@ class GameEngine:
     # Private validation helper
     # ------------------------------------------------------------------
 
-    def _is_valid_position(self, row: int, col: int, template: BrickTemplate) -> bool:
+    def _is_valid_position(self, row: int, col: int, template: Brick) -> bool:
         """Return True if *template* can be placed at (row, col) without conflict."""
         for r, c, _ in template.cells_at(row, col):
             if not self._field.is_in_bounds(r, c):

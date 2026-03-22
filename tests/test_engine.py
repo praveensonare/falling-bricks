@@ -3,19 +3,19 @@ import pytest
 
 from falling_bricks.game.commands import Command
 from falling_bricks.game.engine import GameEngine, GameState, ActiveBrick
-from falling_bricks.models.brick import BrickTemplate, Orientation
+from falling_bricks.models.brick import Brick, Orientation
 from falling_bricks.models.field import Field
 
 
-def h_brick(*symbols) -> BrickTemplate:
-    return BrickTemplate(Orientation.HORIZONTAL, symbols)
+def h_brick(*symbols) -> Brick:
+    return Brick(Orientation.HORIZONTAL, symbols)
 
 
-def v_brick(*symbols) -> BrickTemplate:
-    return BrickTemplate(Orientation.VERTICAL, symbols)
+def v_brick(*symbols) -> Brick:
+    return Brick(Orientation.VERTICAL, symbols)
 
 
-def make_engine(width: int, height: int, *bricks: BrickTemplate) -> GameEngine:
+def make_engine(width: int, height: int, *bricks: Brick) -> GameEngine:
     return GameEngine(Field(width, height), list(bricks))
 
 

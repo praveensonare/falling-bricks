@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import List, Tuple
 
-from falling_bricks.models.brick import BrickTemplate, Orientation
+from falling_bricks.models.brick import Brick, Orientation
 
 # Symbols permitted by the spec plus '^' which appears in the provided example.
 VALID_SYMBOLS: frozenset[str] = frozenset("~.*@^")
@@ -30,7 +30,7 @@ class InputParser:
         5 8 H^^* V*@^
     """
 
-    def parse(self, raw: str) -> Tuple[int, int, List[BrickTemplate]]:
+    def parse(self, raw: str) -> Tuple[int, int, List[Brick]]:
         """Return ``(width, height, bricks)`` from *raw* input.
 
         :raises ParseError: if the string is malformed.
@@ -42,7 +42,7 @@ class InputParser:
         width = self._parse_positive_int(tokens[0], "width")
         height = self._parse_positive_int(tokens[1], "height")
 
-        bricks: List[BrickTemplate] = []
+        bricks: List[Brick] = []
         for token in tokens[2:]:
             if len(bricks) >= _MAX_BRICKS:
                 break
@@ -63,7 +63,7 @@ class InputParser:
         return value
 
     @staticmethod
-    def _parse_brick(token: str) -> BrickTemplate:
+    def _parse_brick(token: str) -> Brick:
         if len(token) != 4:
             raise ParseError(
                 f"Brick token '{token}' must be exactly 4 characters "
@@ -79,11 +79,11 @@ class InputParser:
                 f"Invalid orientation '{token[0]}' in brick '{token}'. "
                 "Must be 'H' or 'V'."
             )
-        symbols = tuple(token[1:])
+        symbols = list(token[1:])
         for sym in symbols:
             if sym not in VALID_SYMBOLS:
                 raise ParseError(
                     f"Invalid symbol '{sym}' in brick '{token}'. "
                     f"Allowed symbols: {''.join(sorted(VALID_SYMBOLS))}"
                 )
-        return BrickTemplate(orientation=orientation, symbols=symbols)  # type: ignore[arg-type]
+        return Brick(orientation=orientation, symbols=symbols)

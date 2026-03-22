@@ -51,11 +51,8 @@ class InputParser:
         width = self._parsePositiveInt(tokens[0], "width")
         height = self._parsePositiveInt(tokens[1], "height")
 
-        bricks: List[Brick] = []
-        for token in tokens[2:]:
-            if not config.ALLOW_UNLIMITED_BRICKS and len(bricks) >= config.MAX_BRICKS:
-                break
-            bricks.append(self._parseBrick(token))
+        brick_tokens = tokens[2:] if config.ALLOW_UNLIMITED_BRICKS else tokens[2:2 + config.MAX_BRICKS]
+        bricks: List[Brick] = [self._parseBrick(token) for token in brick_tokens]
 
         return width, height, bricks
 

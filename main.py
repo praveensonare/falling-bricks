@@ -27,13 +27,13 @@ def play(ui: ConsoleUI) -> None:
         while True:
             raw = ui.getInitInput()
             try:
-                width, height, brickTemplates = parser.parse(raw)
+                width, height, bricks = parser.parse(raw)
                 break
             except ParseError as exc:
                 ui.showError(str(exc))
 
         field = Field(width, height)
-        engine = GameEngine(field, brickTemplates)
+        engine = GameEngine(field, bricks)
 
         # ---- Game loop -----------------------------------------------
         frame = 0

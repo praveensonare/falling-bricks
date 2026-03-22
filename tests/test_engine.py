@@ -194,7 +194,7 @@ class TestNextBrickSpawn:
         engine = makeEngine(5, 8, hBrick("^", "^", "*"), vBrick("*", "@", "^"))
         engine.processFrame([Command.DROP])
         assert engine.activeBrick is not None
-        assert engine.activeBrick.template.orientation == Orientation.VERTICAL
+        assert engine.activeBrick.brick.orientation == Orientation.VERTICAL
 
     def testGameOverWhenNextBrickBlocked(self):
         engine = makeEngine(5, 3, hBrick("^", "^", "*"), hBrick("*", "*", "*"))
@@ -208,9 +208,9 @@ class TestNextBrickSpawn:
 
     def testSecondBrickActiveAfterFirstDrop(self):
         engine = makeEngine(5, 8, hBrick("^", "^", "*"), vBrick("*", "@", "^"))
-        assert engine.activeBrick.template.orientation == Orientation.HORIZONTAL
+        assert engine.activeBrick.brick.orientation == Orientation.HORIZONTAL
         engine.processFrame([Command.DROP])
-        assert engine.activeBrick.template.orientation == Orientation.VERTICAL
+        assert engine.activeBrick.brick.orientation == Orientation.VERTICAL
 
 
 class TestFullExampleScenario:
@@ -245,7 +245,7 @@ class TestFullExampleScenario:
         self.engine.processFrame([Command.RIGHT])
         self.engine.processFrame([Command.DROP, Command.RIGHT])
         assert self.engine.activeBrick is not None
-        assert self.engine.activeBrick.template == self.brick2
+        assert self.engine.activeBrick.brick == self.brick2
         assert self.engine.field.get(7, 2) == "^"
         assert self.engine.field.get(7, 3) == "^"
         assert self.engine.field.get(7, 4) == "*"

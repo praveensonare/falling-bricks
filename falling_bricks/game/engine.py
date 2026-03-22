@@ -21,13 +21,13 @@ class GameState(Enum):
 class ActiveBrick:
     """A brick placed at a specific (row, col) position."""
 
-    template: Brick
+    brick: Brick
     row: int
     col: int
 
     def cells(self) -> List[Tuple[int, int, str]]:
         """Return ``[(row, col, symbol), …]`` for all blocks."""
-        return self.template.cellsAt(self.row, self.col)
+        return self.brick.cellsAt(self.row, self.col)
 
     def overlay(self) -> Dict[Tuple[int, int], str]:
         """Return a mapping ``{(row, col): symbol}`` suitable for field rendering."""
@@ -54,9 +54,9 @@ class GameEngine:
       automatically.  If it cannot descend, it settles onto the field.
     """
 
-    def __init__(self, field: Field, brickTemplates: List[Brick]) -> None:
+    def __init__(self, field: Field, bricks: List[Brick]) -> None:
         self._field = field
-        self._templates = list(brickTemplates)
+        self.bricks = list(bricks)
         self._matchDetector = MatchDetector()
         self._nextIndex: int = 0
         self._state: GameState = GameState.PLAYING
@@ -111,27 +111,27 @@ class GameEngine:
     # ------------------------------------------------------------------
 
     def _shift(self, deltaCol: int) -> None:
-        brick = self._active
-        assert brick is not None
-        newCol = brick.col + deltaCol
-        if self._isValidPosition(brick.row, newCol, brick.template):
-            self._active = ActiveBrick(brick.template, brick.row, newCol)
+        activeBrick = self._active
+        assert activeBrick is not None
+        newCol = activeBrick.col + deltaCol
+        if self._isValidPosition(activeBrick.row, newCol, activeBrick.brick):
+            self._active = ActiveBrick(activeBrick.brick, activeBrick.row, newCol)
 
     def _dropToBottom(self) -> None:
         """Move the active brick as far down as possible without settling."""
-        brick = self._active
-        assert brick is not None
-        row = brick.row
-        while self._isValidPosition(row + 1, brick.col, brick.template):
+        activeBrick = self._active
+        assert activeBrick is not None
+        row = activeBrick.row
+        while self._isValidPosition(row + 1, activeBrick.col, activeBrick.brick):
             row += 1
-        self._active = ActiveBrick(brick.template, row, brick.col)
+        self._active = ActiveBrick(activeBrick.brick, row, activeBrick.col)
 
     def _autoDrop(self) -> None:
         """Drop active brick one row; settle it if it cannot descend."""
-        brick = self._active
-        assert brick is not None
-        if self._isValidPosition(brick.row + 1, brick.col, brick.template):
-            self._active = ActiveBrick(brick.template, brick.row + 1, brick.col)
+        activeBrick = self._active
+        assert activeBrick is not None
+        if self._isValidPosition(activeBrick.row + 1, activeBrick.col, activeBrick.brick):
+            self._active = ActiveBrick(activeBrick.brick, activeBrick.row + 1, activeBrick.col)
         else:
             self._settle()
 
@@ -155,15 +155,15 @@ class GameEngine:
 
     def _spawnNext(self) -> None:
         """Attempt to spawn the next brick; transition to GAME_OVER if unable."""
-        if self._nextIndex >= len(self._templates):
+        if self._nextIndex >= len(self.bricks):
             self._state = GameState.GAME_OVER
             return
 
-        template = self._templates[self._nextIndex]
-        row, col = template.startPosition(self._field.width)
-        brick = ActiveBrick(template=template, row=row, col=col)
+        brick = self.bricks[self._nextIndex]
+        row, col = brick.startPosition(self._field.width)
+        brick = ActiveBrick(brick=brick, row=row, col=col)
 
-        if not self._isValidPosition(row, col, template):
+        if not self._isValidPosition(row, col, brick.brick):
             self._state = GameState.GAME_OVER
             return
 

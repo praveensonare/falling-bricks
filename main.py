@@ -48,13 +48,6 @@ def play(ui: ConsoleUI) -> None:
             commands = parseCommands(rawCmds)
             engine.processFrame(commands)
 
-            # If settling this frame caused a game-over, show the cleared
-            # field as the next (final) frame before breaking.
-            if engine.state == GameState.GAME_OVER:
-                frame += 1
-                ui.showFrame(frame, engine.field, engine.activeBrick)
-                break
-
         # ---- Game over -----------------------------------------------
         ui.showMessage(MSG_GAME_OVER)
         choice = ui.getRestartChoice()

@@ -87,11 +87,15 @@ class TestInvalidInput:
         with pytest.raises(ParseError):
             self.parser.parse("5 8 H^^!")
 
-    def testBrickTooShort(self):
+    def testBrickTooShort(self, monkeypatch):
+        monkeypatch.setattr(cfg, "ALLOW_DYNAMIC_BRICK_LENGTH", False)
+        monkeypatch.setattr(cfg, "BRICK_TOKEN_LENGTH", 4)
         with pytest.raises(ParseError):
             self.parser.parse("5 8 H^*")
 
-    def testBrickTooLong(self):
+    def testBrickTooLong(self, monkeypatch):
+        monkeypatch.setattr(cfg, "ALLOW_DYNAMIC_BRICK_LENGTH", False)
+        monkeypatch.setattr(cfg, "BRICK_TOKEN_LENGTH", 4)
         with pytest.raises(ParseError):
             self.parser.parse("5 8 H^^**")
 

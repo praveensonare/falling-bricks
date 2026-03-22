@@ -174,9 +174,9 @@ class GameEngine:
     # Private validation helper
     # ------------------------------------------------------------------
 
-    def _isValidPosition(self, row: int, col: int, template: Brick) -> bool:
-        """Return True if *template* can be placed at (row, col) without conflict."""
-        for r, c, _ in template.cellsAt(row, col):
+    def _isValidPosition(self, row: int, col: int, brick: Brick) -> bool:
+        """Return True if *brick* can be placed at (row, col) without conflict."""
+        for r, c, _ in brick.cellsAt(row, col):
             if not self._field.isInBounds(r, c):
                 return False
             if not self._field.isEmpty(r, c):

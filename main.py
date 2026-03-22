@@ -1,11 +1,11 @@
 """Entry point for the Match-3 falling-bricks console game."""
 from __future__ import annotations
 
-from falling_bricks.game.commands import parse_commands
+from falling_bricks.game.commands import parseCommands
 from falling_bricks.game.engine import GameEngine, GameState
 from falling_bricks.game.input_parser import InputParser, ParseError
 from falling_bricks.models.field import Field
-from falling_bricks.ui.console import ConsoleUI
+from falling_bricks.ui.console import ConsoleUI, WELCOME, INIT_PROMPT, GAME_OVER_MSG, GOODBYE
 
 
 def play(ui: ConsoleUI) -> None:
@@ -13,52 +13,52 @@ def play(ui: ConsoleUI) -> None:
     parser = InputParser()
 
     while True:
-        ui.show_init_prompt()
+        ui.showMessage(INIT_PROMPT)
 
         # Keep prompting until valid initialization is provided.
         while True:
-            raw = ui.get_init_input()
+            raw = ui.getInitInput()
             try:
-                width, height, brick_templates = parser.parse(raw)
+                width, height, brickTemplates = parser.parse(raw)
                 break
             except ParseError as exc:
-                ui.show_error(str(exc))
+                ui.showError(str(exc))
 
         field = Field(width, height)
-        engine = GameEngine(field, brick_templates)
+        engine = GameEngine(field, brickTemplates)
 
         # ---- Game loop -----------------------------------------------
         frame = 0
         while True:
             frame += 1
-            ui.show_frame(frame, engine.field, engine.active_brick)
+            ui.showFrame(frame, engine.field, engine.activeBrick)
 
             if engine.state == GameState.GAME_OVER:
                 break
 
-            raw_cmds = ui.get_commands()
-            commands = parse_commands(raw_cmds)
-            engine.process_frame(commands)
+            rawCmds = ui.getCommands()
+            commands = parseCommands(rawCmds)
+            engine.processFrame(commands)
 
             # If settling this frame caused a game-over, show the cleared
             # field as the next (final) frame before breaking.
             if engine.state == GameState.GAME_OVER:
                 frame += 1
-                ui.show_frame(frame, engine.field, engine.active_brick)
+                ui.showFrame(frame, engine.field, engine.activeBrick)
                 break
 
         # ---- Game over -----------------------------------------------
-        ui.show_game_over()
-        choice = ui.get_restart_choice()
+        ui.showMessage(GAME_OVER_MSG)
+        choice = ui.getRestartChoice()
         if choice == "Q":
-            ui.show_goodbye()
+            ui.showMessage(GOODBYE)
             return
         # "S" → restart from the top of the outer while loop
 
 
 def main() -> None:
     ui = ConsoleUI()
-    ui.show_welcome()
+    ui.showMessage(WELCOME)
     play(ui)
 
 

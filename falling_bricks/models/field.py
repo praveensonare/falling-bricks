@@ -35,10 +35,10 @@ class Field:
     # Bounds / emptiness checks
     # ------------------------------------------------------------------
 
-    def is_in_bounds(self, row: int, col: int) -> bool:
+    def isInBounds(self, row: int, col: int) -> bool:
         return 0 <= row < self._height and 0 <= col < self._width
 
-    def is_empty(self, row: int, col: int) -> bool:
+    def isEmpty(self, row: int, col: int) -> bool:
         return self._grid[row][col] is None
 
     # ------------------------------------------------------------------
@@ -54,7 +54,7 @@ class Field:
     def remove(self, row: int, col: int) -> None:
         self._grid[row][col] = None
 
-    def remove_cells(self, cells: Set[Tuple[int, int]]) -> None:
+    def removeCells(self, cells: Set[Tuple[int, int]]) -> None:
         for row, col in cells:
             self.remove(row, col)
 
@@ -62,7 +62,7 @@ class Field:
     # Display helpers
     # ------------------------------------------------------------------
 
-    def render_row(self, row: int, overlay: Dict[Tuple[int, int], str] | None = None) -> str:
+    def renderRow(self, row: int, overlay: Dict[Tuple[int, int], str] | None = None) -> str:
         """Return a formatted string for *row*, overlaying *active brick* cells."""
         if overlay is None:
             overlay = {}
@@ -79,4 +79,4 @@ class Field:
 
     def render(self, overlay: Dict[Tuple[int, int], str] | None = None) -> str:
         """Return full field as a newline-joined string."""
-        return "\n".join(self.render_row(r, overlay) for r in range(self._height))
+        return "\n".join(self.renderRow(r, overlay) for r in range(self._height))

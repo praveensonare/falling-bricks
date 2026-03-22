@@ -17,32 +17,32 @@ class MatchDetector:
     naturally).
     """
 
-    def find_matches(self, field: Field) -> Set[Tuple[int, int]]:
+    def findMatches(self, field: Field) -> Set[Tuple[int, int]]:
         """Return the set of ``(row, col)`` coordinates that belong to a match."""
         matched: Set[Tuple[int, int]] = set()
-        matched |= self._scan_rows(field)
-        matched |= self._scan_cols(field)
+        matched |= self._scanRows(field)
+        matched |= self._scanCols(field)
         return matched
 
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _scan_rows(self, field: Field) -> Set[Tuple[int, int]]:
+    def _scanRows(self, field: Field) -> Set[Tuple[int, int]]:
         matched: Set[Tuple[int, int]] = set()
         for row in range(field.height):
             positions = [(row, col) for col in range(field.width)]
-            matched |= self._find_runs(positions, field)
+            matched |= self._findRuns(positions, field)
         return matched
 
-    def _scan_cols(self, field: Field) -> Set[Tuple[int, int]]:
+    def _scanCols(self, field: Field) -> Set[Tuple[int, int]]:
         matched: Set[Tuple[int, int]] = set()
         for col in range(field.width):
             positions = [(row, col) for row in range(field.height)]
-            matched |= self._find_runs(positions, field)
+            matched |= self._findRuns(positions, field)
         return matched
 
-    def _find_runs(
+    def _findRuns(
         self, positions: List[Tuple[int, int]], field: Field
     ) -> Set[Tuple[int, int]]:
         matched: Set[Tuple[int, int]] = set()
@@ -61,8 +61,8 @@ class MatchDetector:
                 if field.get(r2, c2) != symbol:
                     break
                 j += 1
-            run_length = j - i
-            if run_length >= _MIN_MATCH:
+            runLength = j - i
+            if runLength >= _MIN_MATCH:
                 for k in range(i, j):
                     matched.add(positions[k])
             i = j

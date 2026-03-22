@@ -20,15 +20,15 @@ class GameState(Enum):
 
 @dataclass
 class ActiveBrick:
-    """A brick template placed at a specific (row, col) position."""
+    """A brick placed at a specific (row, col) position."""
 
     template: Brick
     row: int
     col: int
 
     def cells(self) -> List[Tuple[int, int, str]]:
-        """Return ``[(row, col, symbol), …]`` for all three blocks."""
-        return self.template.cells_at(self.row, self.col)
+        """Return ``[(row, col, symbol), …]`` for all blocks."""
+        return self.template.cellsAt(self.row, self.col)
 
     def overlay(self) -> Dict[Tuple[int, int], str]:
         """Return a mapping ``{(row, col): symbol}`` suitable for field rendering."""
@@ -41,7 +41,7 @@ class GameEngine:
     Lifecycle
     ---------
     1. Construction spawns the first brick (frame 1).
-    2. Each call to :meth:`process_frame` advances one game frame.
+    2. Each call to :meth:`processFrame` advances one game frame.
     3. When :attr:`state` is ``GAME_OVER`` the final field state is ready for
        display; no further frame processing is possible.
 
@@ -55,15 +55,15 @@ class GameEngine:
       automatically.  If it cannot descend, it settles onto the field.
     """
 
-    def __init__(self, field: Field, brick_templates: List[Brick]) -> None:
+    def __init__(self, field: Field, brickTemplates: List[Brick]) -> None:
         self._field = field
-        self._templates = list(brick_templates)
-        self._match_detector = MatchDetector()
-        self._next_index: int = 0
+        self._templates = list(brickTemplates)
+        self._matchDetector = MatchDetector()
+        self._nextIndex: int = 0
         self._state: GameState = GameState.PLAYING
         self._active: Optional[ActiveBrick] = None
 
-        self._spawn_next()
+        self._spawnNext()
 
     # ------------------------------------------------------------------
     # Public read-only properties
@@ -74,7 +74,7 @@ class GameEngine:
         return self._field
 
     @property
-    def active_brick(self) -> Optional[ActiveBrick]:
+    def activeBrick(self) -> Optional[ActiveBrick]:
         return self._active
 
     @property
@@ -85,7 +85,7 @@ class GameEngine:
     # Public mutating method
     # ------------------------------------------------------------------
 
-    def process_frame(self, commands: List[Command]) -> None:
+    def processFrame(self, commands: List[Command]) -> None:
         """Execute *commands* and advance physics for one frame.
 
         If the game is already over this is a no-op.
@@ -93,45 +93,45 @@ class GameEngine:
         if self._state != GameState.PLAYING or self._active is None:
             return
 
-        cmd_count = 0
+        cmdCount = 0
         for cmd in commands:
-            if cmd_count >= _MAX_COMMANDS_PER_FRAME:
+            if cmdCount >= _MAX_COMMANDS_PER_FRAME:
                 break
-            cmd_count += 1
+            cmdCount += 1
             if cmd == Command.LEFT:
                 self._shift(-1)
             elif cmd == Command.RIGHT:
                 self._shift(+1)
             elif cmd == Command.DROP:
-                self._drop_to_bottom()
+                self._dropToBottom()
 
-        self._auto_drop()
+        self._autoDrop()
 
     # ------------------------------------------------------------------
     # Private movement helpers
     # ------------------------------------------------------------------
 
-    def _shift(self, delta_col: int) -> None:
+    def _shift(self, deltaCol: int) -> None:
         brick = self._active
         assert brick is not None
-        new_col = brick.col + delta_col
-        if self._is_valid_position(brick.row, new_col, brick.template):
-            self._active = ActiveBrick(brick.template, brick.row, new_col)
+        newCol = brick.col + deltaCol
+        if self._isValidPosition(brick.row, newCol, brick.template):
+            self._active = ActiveBrick(brick.template, brick.row, newCol)
 
-    def _drop_to_bottom(self) -> None:
+    def _dropToBottom(self) -> None:
         """Move the active brick as far down as possible without settling."""
         brick = self._active
         assert brick is not None
         row = brick.row
-        while self._is_valid_position(row + 1, brick.col, brick.template):
+        while self._isValidPosition(row + 1, brick.col, brick.template):
             row += 1
         self._active = ActiveBrick(brick.template, row, brick.col)
 
-    def _auto_drop(self) -> None:
+    def _autoDrop(self) -> None:
         """Drop active brick one row; settle it if it cannot descend."""
         brick = self._active
         assert brick is not None
-        if self._is_valid_position(brick.row + 1, brick.col, brick.template):
+        if self._isValidPosition(brick.row + 1, brick.col, brick.template):
             self._active = ActiveBrick(brick.template, brick.row + 1, brick.col)
         else:
             self._settle()
@@ -148,38 +148,38 @@ class GameEngine:
             self._field.place(row, col, symbol)
         self._active = None
 
-        matches = self._match_detector.find_matches(self._field)
+        matches = self._matchDetector.findMatches(self._field)
         if matches:
-            self._field.remove_cells(matches)
+            self._field.removeCells(matches)
 
-        self._spawn_next()
+        self._spawnNext()
 
-    def _spawn_next(self) -> None:
+    def _spawnNext(self) -> None:
         """Attempt to spawn the next brick; transition to GAME_OVER if unable."""
-        if self._next_index >= len(self._templates):
+        if self._nextIndex >= len(self._templates):
             self._state = GameState.GAME_OVER
             return
 
-        template = self._templates[self._next_index]
-        row, col = template.start_position(self._field.width)
+        template = self._templates[self._nextIndex]
+        row, col = template.startPosition(self._field.width)
         brick = ActiveBrick(template=template, row=row, col=col)
 
-        if not self._is_valid_position(row, col, template):
+        if not self._isValidPosition(row, col, template):
             self._state = GameState.GAME_OVER
             return
 
         self._active = brick
-        self._next_index += 1
+        self._nextIndex += 1
 
     # ------------------------------------------------------------------
     # Private validation helper
     # ------------------------------------------------------------------
 
-    def _is_valid_position(self, row: int, col: int, template: Brick) -> bool:
+    def _isValidPosition(self, row: int, col: int, template: Brick) -> bool:
         """Return True if *template* can be placed at (row, col) without conflict."""
-        for r, c, _ in template.cells_at(row, col):
-            if not self._field.is_in_bounds(r, c):
+        for r, c, _ in template.cellsAt(row, col):
+            if not self._field.isInBounds(r, c):
                 return False
-            if not self._field.is_empty(r, c):
+            if not self._field.isEmpty(r, c):
                 return False
         return True

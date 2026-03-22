@@ -14,7 +14,7 @@ class Command(Enum):
 _CHAR_TO_COMMAND = {cmd.value: cmd for cmd in Command}
 
 
-def parse_commands(raw: str) -> List[Command]:
+def parseCommands(raw: str) -> List[Command]:
     """Extract valid commands from *raw* input string.
 
     Characters that are not ``L``, ``R``, or ``D`` (case-insensitive) are

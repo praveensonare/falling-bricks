@@ -48,7 +48,7 @@ class Brick:
     # Spatial helpers
     # ------------------------------------------------------------------
 
-    def cells_at(self, row: int, col: int) -> List[Tuple[int, int, str]]:
+    def cellsAt(self, row: int, col: int) -> List[Tuple[int, int, str]]:
         """Return ``[(row, col, symbol), …]`` for brick placed at *top-left* (row, col).
 
         Works for any brick length — two-block mini-bricks, the standard
@@ -59,25 +59,25 @@ class Brick:
         # VERTICAL
         return [(row + i, col, sym) for i, sym in enumerate(self._symbols)]
 
-    def start_position(self, field_width: int) -> Tuple[int, int]:
+    def startPosition(self, fieldWidth: int) -> Tuple[int, int]:
         """Return centered ``(row, col)`` start position for this brick.
 
         Centering is floor-biased (left-center for even remainders), matching
         the reference example output.
         """
         if self._orientation == Orientation.HORIZONTAL:
-            col = (field_width - len(self._symbols)) // 2
+            col = (fieldWidth - len(self._symbols)) // 2
         else:
-            col = (field_width - 1) // 2
+            col = (fieldWidth - 1) // 2
         return (0, col)
 
     @property
-    def footprint_width(self) -> int:
+    def footprintWidth(self) -> int:
         """Number of columns this brick occupies."""
         return len(self._symbols) if self._orientation == Orientation.HORIZONTAL else 1
 
     @property
-    def footprint_height(self) -> int:
+    def footprintHeight(self) -> int:
         """Number of rows this brick occupies."""
         return 1 if self._orientation == Orientation.HORIZONTAL else len(self._symbols)
 

@@ -39,21 +39,21 @@ class InputParser:
         if len(tokens) < 2:
             raise ParseError("Expected at least width and height.")
 
-        width = self._parse_positive_int(tokens[0], "width")
-        height = self._parse_positive_int(tokens[1], "height")
+        width = self._parsePositiveInt(tokens[0], "width")
+        height = self._parsePositiveInt(tokens[1], "height")
 
         bricks: List[Brick] = []
         for token in tokens[2:]:
             if len(bricks) >= _MAX_BRICKS:
                 break
-            bricks.append(self._parse_brick(token))
+            bricks.append(self._parseBrick(token))
 
         return width, height, bricks
 
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _parse_positive_int(token: str, name: str) -> int:
+    def _parsePositiveInt(token: str, name: str) -> int:
         try:
             value = int(token)
         except ValueError:
@@ -63,16 +63,16 @@ class InputParser:
         return value
 
     @staticmethod
-    def _parse_brick(token: str) -> Brick:
+    def _parseBrick(token: str) -> Brick:
         if len(token) != 4:
             raise ParseError(
                 f"Brick token '{token}' must be exactly 4 characters "
                 f"(orientation + 3 symbols), got {len(token)}."
             )
-        orientation_char = token[0].upper()
-        if orientation_char == "H":
+        orientationChar = token[0].upper()
+        if orientationChar == "H":
             orientation = Orientation.HORIZONTAL
-        elif orientation_char == "V":
+        elif orientationChar == "V":
             orientation = Orientation.VERTICAL
         else:
             raise ParseError(

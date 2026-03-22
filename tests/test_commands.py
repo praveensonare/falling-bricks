@@ -1,35 +1,34 @@
 """Tests for command parsing."""
-from falling_bricks.game.commands import Command, parse_commands
+from falling_bricks.game.commands import Command, parseCommands
 
 
 class TestParseCommands:
-    def test_empty_string(self):
-        assert parse_commands("") == []
+    def testEmptyString(self):
+        assert parseCommands("") == []
 
-    def test_single_left(self):
-        assert parse_commands("L") == [Command.LEFT]
+    def testSingleLeft(self):
+        assert parseCommands("L") == [Command.LEFT]
 
-    def test_single_right(self):
-        assert parse_commands("R") == [Command.RIGHT]
+    def testSingleRight(self):
+        assert parseCommands("R") == [Command.RIGHT]
 
-    def test_single_drop(self):
-        assert parse_commands("D") == [Command.DROP]
+    def testSingleDrop(self):
+        assert parseCommands("D") == [Command.DROP]
 
-    def test_multiple_commands(self):
-        assert parse_commands("LLR") == [Command.LEFT, Command.LEFT, Command.RIGHT]
+    def testMultipleCommands(self):
+        assert parseCommands("LLR") == [Command.LEFT, Command.LEFT, Command.RIGHT]
 
-    def test_lowercase_ignored(self):
-        # lowercase is ignored (input is uppercased internally)
-        assert parse_commands("l") == [Command.LEFT]
+    def testLowercaseHandled(self):
+        assert parseCommands("l") == [Command.LEFT]
 
-    def test_mixed_case(self):
-        assert parse_commands("lRd") == [Command.LEFT, Command.RIGHT, Command.DROP]
+    def testMixedCase(self):
+        assert parseCommands("lRd") == [Command.LEFT, Command.RIGHT, Command.DROP]
 
-    def test_invalid_chars_ignored(self):
-        assert parse_commands("XLRY") == [Command.LEFT, Command.RIGHT]
+    def testInvalidCharsIgnored(self):
+        assert parseCommands("XLRY") == [Command.LEFT, Command.RIGHT]
 
-    def test_spaces_ignored(self):
-        assert parse_commands("L R") == [Command.LEFT, Command.RIGHT]
+    def testSpacesIgnored(self):
+        assert parseCommands("L R") == [Command.LEFT, Command.RIGHT]
 
-    def test_drop_right(self):
-        assert parse_commands("DR") == [Command.DROP, Command.RIGHT]
+    def testDropRight(self):
+        assert parseCommands("DR") == [Command.DROP, Command.RIGHT]

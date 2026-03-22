@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Dict, Optional, Set, Tuple
 
-EMPTY_CELL = "."
+from falling_bricks.constants import EMPTY_CELL, ERR_FIELD_DIMENSIONS
 
 
 class Field:
@@ -16,7 +16,7 @@ class Field:
 
     def __init__(self, width: int, height: int) -> None:
         if width < 1 or height < 1:
-            raise ValueError(f"Field dimensions must be positive, got {width}x{height}.")
+            raise ValueError(ERR_FIELD_DIMENSIONS.format(width=width, height=height))
         self._width = width
         self._height = height
         self._grid: list[list[Optional[str]]] = [

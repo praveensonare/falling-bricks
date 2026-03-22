@@ -1,11 +1,19 @@
 """Entry point for the Match-3 falling-bricks console game."""
 from __future__ import annotations
 
+from falling_bricks import config
+from falling_bricks.constants import (
+    MSG_WELCOME,
+    MSG_INIT_PROMPT,
+    MSG_GAME_OVER,
+    MSG_GOODBYE,
+    CHOICE_QUIT,
+)
 from falling_bricks.game.commands import parseCommands
 from falling_bricks.game.engine import GameEngine, GameState
 from falling_bricks.game.input_parser import InputParser, ParseError
 from falling_bricks.models.field import Field
-from falling_bricks.ui.console import ConsoleUI, WELCOME, INIT_PROMPT, GAME_OVER_MSG, GOODBYE
+from falling_bricks.ui.console import ConsoleUI
 
 
 def play(ui: ConsoleUI) -> None:
@@ -13,7 +21,7 @@ def play(ui: ConsoleUI) -> None:
     parser = InputParser()
 
     while True:
-        ui.showMessage(INIT_PROMPT)
+        ui.showMessage(MSG_INIT_PROMPT.format(maxBricks=config.MAX_BRICKS))
 
         # Keep prompting until valid initialization is provided.
         while True:
@@ -48,17 +56,17 @@ def play(ui: ConsoleUI) -> None:
                 break
 
         # ---- Game over -----------------------------------------------
-        ui.showMessage(GAME_OVER_MSG)
+        ui.showMessage(MSG_GAME_OVER)
         choice = ui.getRestartChoice()
-        if choice == "Q":
-            ui.showMessage(GOODBYE)
+        if choice == CHOICE_QUIT:
+            ui.showMessage(MSG_GOODBYE)
             return
-        # "S" → restart from the top of the outer while loop
+        # CHOICE_RESTART → loop back to init
 
 
 def main() -> None:
     ui = ConsoleUI()
-    ui.showMessage(WELCOME)
+    ui.showMessage(MSG_WELCOME)
     play(ui)
 
 

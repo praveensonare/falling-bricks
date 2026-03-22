@@ -3,20 +3,16 @@ from __future__ import annotations
 
 from typing import Optional
 
+from falling_bricks import config
+from falling_bricks.constants import (
+    MSG_CMD_PROMPT,
+    MSG_RESTART_PROMPT,
+    ERR_INVALID_RESTART,
+    CHOICE_RESTART,
+    CHOICE_QUIT,
+)
 from falling_bricks.game.engine import ActiveBrick
 from falling_bricks.models.field import Field
-
-# Public message constants — imported by callers that use showMessage().
-WELCOME = "Welcome to Match-3 game!"
-INIT_PROMPT = "\nPlease enter field size (width and height) and up to 5 bricks set:"
-GAME_OVER_MSG = "\nGame Over."
-GOODBYE = "\nThank you for playing Match-3!"
-RESTART_PROMPT = "Enter S to start over or Q to quit:"
-
-_CMD_PROMPT = (
-    "Enter up to 2 commands to process before moving to the next frame "
-    "(valid commands are L,R,D):"
-)
 
 
 class ConsoleUI:
@@ -51,14 +47,14 @@ class ConsoleUI:
         return input()
 
     def getCommands(self) -> str:
-        print(_CMD_PROMPT)
+        print(MSG_CMD_PROMPT)
         return input()
 
     def getRestartChoice(self) -> str:
-        """Prompt until the user enters S or Q."""
+        """Prompt until the user enters a valid restart choice."""
         while True:
-            self.showMessage(RESTART_PROMPT)
+            self.showMessage(MSG_RESTART_PROMPT)
             choice = input().strip().upper()
-            if choice in ("S", "Q"):
+            if choice in (CHOICE_RESTART, CHOICE_QUIT):
                 return choice
-            self.showError("Please enter S to start over or Q to quit.")
+            self.showError(ERR_INVALID_RESTART)

@@ -5,12 +5,11 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
 
+from falling_bricks.constants import MAX_COMMANDS_PER_FRAME
 from falling_bricks.models.brick import Brick
 from falling_bricks.models.field import Field
 from falling_bricks.game.commands import Command
 from falling_bricks.game.match_detector import MatchDetector
-
-_MAX_COMMANDS_PER_FRAME = 2
 
 
 class GameState(Enum):
@@ -47,9 +46,9 @@ class GameEngine:
 
     Command processing rules (per frame)
     -------------------------------------
-    * Only the first **two** commands (``L``, ``R``, ``D``) are acted upon.
+    * Only the first ``MAX_COMMANDS_PER_FRAME`` commands are acted upon.
     * ``L`` / ``R``: attempt to shift the brick; silently skipped when blocked
-      but still count toward the two-command limit.
+      but still count toward the command limit.
     * ``D``: instantly drop the brick to its lowest possible resting row.
     * After commands are processed, the brick *always* descends one row
       automatically.  If it cannot descend, it settles onto the field.
@@ -95,7 +94,7 @@ class GameEngine:
 
         cmdCount = 0
         for cmd in commands:
-            if cmdCount >= _MAX_COMMANDS_PER_FRAME:
+            if cmdCount >= MAX_COMMANDS_PER_FRAME:
                 break
             cmdCount += 1
             if cmd == Command.LEFT:

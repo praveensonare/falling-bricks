@@ -1,7 +1,8 @@
 """Tests for Field."""
 import pytest
 
-from falling_bricks.models.field import Field, EMPTY_CELL
+from falling_bricks.constants import EMPTY_CELL
+from falling_bricks.models.field import Field
 
 
 class TestFieldCreation:

@@ -4,6 +4,8 @@ from __future__ import annotations
 from enum import Enum
 from typing import Iterable, List, Tuple
 
+from falling_bricks.constants import MIN_SYMBOLS_PER_BRICK, ERR_MIN_SYMBOLS
+
 
 class Orientation(Enum):
     HORIZONTAL = "H"
@@ -32,8 +34,8 @@ class Brick:
         self._orientation = orientation
         # Freeze into an immutable tuple so Brick can be used as a dict key.
         self._symbols: tuple[str, ...] = tuple(symbols)
-        if len(self._symbols) < 1:
-            raise ValueError("A brick must have at least one symbol.")
+        if len(self._symbols) < MIN_SYMBOLS_PER_BRICK:
+            raise ValueError(ERR_MIN_SYMBOLS.format(min=MIN_SYMBOLS_PER_BRICK))
 
     @property
     def orientation(self) -> Orientation:

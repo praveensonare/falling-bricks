@@ -1,20 +1,19 @@
-"""Match detector: find runs of 3+ identical symbols in rows or columns."""
+"""Match detector: find runs of identical symbols in rows or columns."""
 from __future__ import annotations
 
 from typing import List, Set, Tuple
 
+from falling_bricks.constants import MIN_MATCH_LENGTH
 from falling_bricks.models.field import Field
-
-_MIN_MATCH = 3
 
 
 class MatchDetector:
     """Scans a :class:`~falling_bricks.models.field.Field` for matches.
 
-    A *match* is a horizontal or vertical run of three or more identical,
-    non-empty symbols.  All matched cell coordinates are returned as a set so
-    they can be removed in one pass (overlapping H/V matches are handled
-    naturally).
+    A *match* is a horizontal or vertical run of ``MIN_MATCH_LENGTH`` or more
+    identical, non-empty symbols.  All matched cell coordinates are returned as
+    a set so they can be removed in one pass (overlapping H/V matches are
+    handled naturally).
     """
 
     def findMatches(self, field: Field) -> Set[Tuple[int, int]]:
@@ -54,7 +53,6 @@ class MatchDetector:
             if symbol is None:
                 i += 1
                 continue
-            # Find end of consecutive run with same symbol
             j = i + 1
             while j < n:
                 r2, c2 = positions[j]
@@ -62,7 +60,7 @@ class MatchDetector:
                     break
                 j += 1
             runLength = j - i
-            if runLength >= _MIN_MATCH:
+            if runLength >= MIN_MATCH_LENGTH:
                 for k in range(i, j):
                     matched.add(positions[k])
             i = j

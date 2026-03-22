@@ -3,11 +3,17 @@ from __future__ import annotations
 
 from typing import List, Tuple
 
+from falling_bricks import config
+from falling_bricks.constants import (
+    ERR_EXPECTED_DIMENSIONS,
+    ERR_NOT_INTEGER,
+    ERR_NOT_POSITIVE,
+    ERR_BRICK_FIXED_LENGTH,
+    ERR_BRICK_MIN_LENGTH,
+    ERR_INVALID_ORIENTATION,
+    ERR_INVALID_SYMBOL,
+)
 from falling_bricks.models.brick import Brick, Orientation
-
-# Symbols permitted by the spec plus '^' which appears in the provided example.
-VALID_SYMBOLS: frozenset[str] = frozenset("~.*@^")
-_MAX_BRICKS = 5
 
 
 class ParseError(ValueError):
@@ -19,11 +25,14 @@ class InputParser:
 
     Expected format::
 
-        <width> <height> [brick1 brick2 … brick5]
+        <width> <height> [brick1 brick2 …]
 
-    Each brick is ``<orientation><s1><s2><s3>`` where orientation is ``H`` or
-    ``V`` (case-insensitive) and each symbol is one of ``~``, ``.``, ``*``,
-    ``@``, ``^``.
+    Each brick token is ``<orientation>`` followed by one or more symbol chars.
+    When ``config.ALLOW_DYNAMIC_BRICK_LENGTH`` is False (default), the token
+    must be exactly ``config.BRICK_TOKEN_LENGTH`` characters long.
+
+    The number of bricks is capped at ``config.MAX_BRICKS`` unless
+    ``config.ALLOW_UNLIMITED_BRICKS`` is True.
 
     Example::
 
@@ -37,14 +46,14 @@ class InputParser:
         """
         tokens = raw.strip().split()
         if len(tokens) < 2:
-            raise ParseError("Expected at least width and height.")
+            raise ParseError(ERR_EXPECTED_DIMENSIONS)
 
         width = self._parsePositiveInt(tokens[0], "width")
         height = self._parsePositiveInt(tokens[1], "height")
 
         bricks: List[Brick] = []
         for token in tokens[2:]:
-            if len(bricks) >= _MAX_BRICKS:
+            if not config.ALLOW_UNLIMITED_BRICKS and len(bricks) >= config.MAX_BRICKS:
                 break
             bricks.append(self._parseBrick(token))
 
@@ -57,18 +66,27 @@ class InputParser:
         try:
             value = int(token)
         except ValueError:
-            raise ParseError(f"{name.capitalize()} must be an integer, got '{token}'.")
+            raise ParseError(ERR_NOT_INTEGER.format(name=name.capitalize(), value=token))
         if value < 1:
-            raise ParseError(f"{name.capitalize()} must be a positive integer, got {value}.")
+            raise ParseError(ERR_NOT_POSITIVE.format(name=name.capitalize(), value=value))
         return value
 
     @staticmethod
     def _parseBrick(token: str) -> Brick:
-        if len(token) != 4:
-            raise ParseError(
-                f"Brick token '{token}' must be exactly 4 characters "
-                f"(orientation + 3 symbols), got {len(token)}."
-            )
+        if config.ALLOW_DYNAMIC_BRICK_LENGTH:
+            if len(token) < 2:
+                raise ParseError(ERR_BRICK_MIN_LENGTH.format(token=token, actual=len(token)))
+        else:
+            if len(token) != config.BRICK_TOKEN_LENGTH:
+                raise ParseError(
+                    ERR_BRICK_FIXED_LENGTH.format(
+                        token=token,
+                        expected=config.BRICK_TOKEN_LENGTH,
+                        symbols=config.SYMBOLS_PER_BRICK,
+                        actual=len(token),
+                    )
+                )
+
         orientationChar = token[0].upper()
         if orientationChar == "H":
             orientation = Orientation.HORIZONTAL
@@ -76,14 +94,18 @@ class InputParser:
             orientation = Orientation.VERTICAL
         else:
             raise ParseError(
-                f"Invalid orientation '{token[0]}' in brick '{token}'. "
-                "Must be 'H' or 'V'."
+                ERR_INVALID_ORIENTATION.format(char=token[0], token=token)
             )
+
         symbols = list(token[1:])
         for sym in symbols:
-            if sym not in VALID_SYMBOLS:
+            if sym not in config.VALID_SYMBOLS:
                 raise ParseError(
-                    f"Invalid symbol '{sym}' in brick '{token}'. "
-                    f"Allowed symbols: {''.join(sorted(VALID_SYMBOLS))}"
+                    ERR_INVALID_SYMBOL.format(
+                        sym=sym,
+                        token=token,
+                        allowed="".join(sorted(config.VALID_SYMBOLS)),
+                    )
                 )
+
         return Brick(orientation=orientation, symbols=symbols)

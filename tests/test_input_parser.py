@@ -1,6 +1,7 @@
 """Tests for InputParser."""
 import pytest
 
+import falling_bricks.config as cfg
 from falling_bricks.game.input_parser import InputParser, ParseError
 from falling_bricks.models.brick import Orientation
 
@@ -93,3 +94,65 @@ class TestInvalidInput:
     def testBrickTooLong(self):
         with pytest.raises(ParseError):
             self.parser.parse("5 8 H^^**")
+
+
+class TestFeatureFlags:
+    """Tests for config feature flags — use monkeypatch to toggle safely."""
+
+    def setup_method(self):
+        self.parser = InputParser()
+
+    # --- ALLOW_UNLIMITED_BRICKS ---
+
+    def testDefaultCapAtMaxBricks(self, monkeypatch):
+        monkeypatch.setattr(cfg, "ALLOW_UNLIMITED_BRICKS", False)
+        monkeypatch.setattr(cfg, "MAX_BRICKS", 5)
+        _, _, bricks = self.parser.parse("5 8 H^^* V*@^ H~.* V@~^ H*** H... V~~~")
+        assert len(bricks) == 5
+
+    def testAllowUnlimitedBricksIgnoresCap(self, monkeypatch):
+        monkeypatch.setattr(cfg, "ALLOW_UNLIMITED_BRICKS", True)
+        monkeypatch.setattr(cfg, "MAX_BRICKS", 5)
+        _, _, bricks = self.parser.parse("5 8 H^^* V*@^ H~.* V@~^ H*** H... V~~~")
+        assert len(bricks) == 7
+
+    def testAllowUnlimitedBricksWithCustomCap(self, monkeypatch):
+        monkeypatch.setattr(cfg, "ALLOW_UNLIMITED_BRICKS", False)
+        monkeypatch.setattr(cfg, "MAX_BRICKS", 3)
+        _, _, bricks = self.parser.parse("5 8 H^^* V*@^ H~.* V@~^")
+        assert len(bricks) == 3
+
+    # --- ALLOW_DYNAMIC_BRICK_LENGTH ---
+
+    def testDefaultRejectsNonStandardLength(self, monkeypatch):
+        monkeypatch.setattr(cfg, "ALLOW_DYNAMIC_BRICK_LENGTH", False)
+        monkeypatch.setattr(cfg, "BRICK_TOKEN_LENGTH", 4)
+        monkeypatch.setattr(cfg, "SYMBOLS_PER_BRICK", 3)
+        with pytest.raises(ParseError):
+            self.parser.parse("5 8 H^^")    # 3 chars, not 4
+
+    def testDynamicLengthAcceptsTwoSymbolBrick(self, monkeypatch):
+        monkeypatch.setattr(cfg, "ALLOW_DYNAMIC_BRICK_LENGTH", True)
+        _, _, bricks = self.parser.parse("5 8 H^^")
+        assert len(bricks) == 1
+        assert bricks[0].symbols == ("^", "^")
+
+    def testDynamicLengthAcceptsFiveSymbolBrick(self, monkeypatch):
+        monkeypatch.setattr(cfg, "ALLOW_DYNAMIC_BRICK_LENGTH", True)
+        _, _, bricks = self.parser.parse("5 8 H^^^^*")
+        assert len(bricks) == 1
+        assert len(bricks[0].symbols) == 5
+
+    def testDynamicLengthRejectsOrientationOnly(self, monkeypatch):
+        monkeypatch.setattr(cfg, "ALLOW_DYNAMIC_BRICK_LENGTH", True)
+        with pytest.raises(ParseError):
+            self.parser.parse("5 8 H")     # only orientation, no symbols
+
+    def testDynamicLengthAndUnlimitedCombined(self, monkeypatch):
+        monkeypatch.setattr(cfg, "ALLOW_DYNAMIC_BRICK_LENGTH", True)
+        monkeypatch.setattr(cfg, "ALLOW_UNLIMITED_BRICKS", True)
+        monkeypatch.setattr(cfg, "MAX_BRICKS", 5)
+        _, _, bricks = self.parser.parse("5 8 H^^ V*@ H^^^^ V*@^ H~~~ H... V~~~")
+        assert len(bricks) == 7
+        assert bricks[0].symbols == ("^", "^")      # 2-symbol H brick
+        assert bricks[2].symbols == ("^", "^", "^", "^")  # 4-symbol H brick

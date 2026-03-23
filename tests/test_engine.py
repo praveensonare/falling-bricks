@@ -93,6 +93,89 @@ class TestMoveRight:
         assert engine.activeBrick.col == col
 
 
+class TestConflictBlocking:
+    def testMoveLeftBlockedBySettledBrick(self):
+        # Brick starts at row 0, col 1. Obstacle at (0, 0) blocks the shift.
+        field = Field(5, 8)
+        field.place(0, 0, "X")
+        engine = GameEngine(field, [hBrick("^", "^", "*")])
+        engine.processFrame([Command.LEFT])
+        assert engine.activeBrick.col == 1  # shift rejected, stays at col 1
+
+    def testMoveRightBlockedBySettledBrick(self):
+        # Brick starts at row 0, col 1 (cells at 0,1-3). Shift right → cells at 0,2-4.
+        # Obstacle at (0, 4) blocks the shift.
+        field = Field(5, 8)
+        field.place(0, 4, "X")
+        engine = GameEngine(field, [hBrick("^", "^", "*")])
+        engine.processFrame([Command.RIGHT])
+        assert engine.activeBrick.col == 1  # shift rejected
+
+    def testAutoDropSettlesOnTopOfSettledBrick(self):
+        field = Field(5, 8)
+        field.place(4, 1, "X")
+        field.place(4, 2, "X")
+        field.place(4, 3, "X")
+        engine = GameEngine(field, [hBrick("^", "^", "*")])
+        engine.processFrame([Command.DROP])
+        # Brick should settle at row 3 (one above the occupied row 4)
+        assert field.get(3, 1) == "^"
+        assert field.get(3, 2) == "^"
+        assert field.get(3, 3) == "*"
+
+    def testAutoDropRowAdvancesUntilBlocked(self):
+        # Obstacle at row 5 — brick descends rows 0→1→2→3→4 then settles.
+        field = Field(5, 8)
+        field.place(5, 1, "X")
+        field.place(5, 2, "X")
+        field.place(5, 3, "X")
+        engine = GameEngine(field, [hBrick("^", "^", "*")])
+        for expected_row in range(1, 5):
+            engine.processFrame([])
+            assert engine.activeBrick.row == expected_row
+        engine.processFrame([])  # at row 4, cannot descend to row 5 → settles
+        assert field.get(4, 1) == "^"
+
+    # Negative cases — confirm blocking only fires on actual conflict
+
+    def testMoveLeftAllowedWhenClear(self):
+        # No obstacle: left shift must succeed.
+        engine = makeEngine(5, 8, hBrick("^", "^", "*"))
+        engine.processFrame([Command.LEFT])
+        assert engine.activeBrick.col == 0  # shifted from 1 → 0
+
+    def testMoveRightAllowedWhenClear(self):
+        # No obstacle: right shift must succeed.
+        engine = makeEngine(5, 8, hBrick("^", "^", "*"))
+        engine.processFrame([Command.RIGHT])
+        assert engine.activeBrick.col == 2  # shifted from 1 → 2
+
+    def testAutoDropDoesNotSettleMidFieldWithoutObstacle(self):
+        # No obstacle below: brick must still be falling after 3 frames.
+        engine = makeEngine(5, 8, hBrick("^", "^", "*"))
+        for _ in range(3):
+            engine.processFrame([])
+        assert engine.activeBrick is not None
+        assert engine.activeBrick.row == 3  # descended to row 3, not settled
+
+    def testObstacleInAdjacentColumnDoesNotBlockShift(self):
+        # Obstacle exists but not in the shifted path — shift must still succeed.
+        field = Field(5, 8)
+        field.place(0, 4, "X")  # rightmost column but brick won't reach col 4
+        engine = GameEngine(field, [hBrick("^", "^", "*")])
+        engine.processFrame([Command.LEFT])
+        assert engine.activeBrick.col == 0  # left shift unaffected by obstacle at col 4
+
+    def testObstacleOneLevelBelowDoesNotBlockCurrentShift(self):
+        # Obstacle is one row below the shifted position — shift itself is valid.
+        field = Field(5, 8)
+        field.place(1, 0, "X")  # row 1, would block auto-drop but not the shift at row 0
+        engine = GameEngine(field, [hBrick("^", "^", "*")])
+        engine.processFrame([Command.LEFT])
+        # Shift to col 0 succeeds (row 0 is clear); then auto-drop to row 1 is blocked → settles.
+        assert field.get(0, 0) == "^"  # settled at row 0 after shift succeeded
+
+
 class TestMaxTwoCommandsPerFrame:
     def testOnlyTwoCommandsProcessed(self):
         engine = makeEngine(5, 8, hBrick("^", "^", "*"))

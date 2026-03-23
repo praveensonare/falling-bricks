@@ -124,14 +124,14 @@ class GameEngine:
         row = activeBrick.row
         while self._isValidPosition(row + 1, activeBrick.col, activeBrick.brick):
             row += 1
-        self._active = ActiveBrick(activeBrick.brick, row, activeBrick.col)
+        self._active.row = row
 
     def _autoDrop(self) -> None:
         """Drop active brick one row; settle it if it cannot descend."""
         activeBrick = self._active
         assert activeBrick is not None
         if self._isValidPosition(activeBrick.row + 1, activeBrick.col, activeBrick.brick):
-            self._active = ActiveBrick(activeBrick.brick, activeBrick.row + 1, activeBrick.col)
+            self._active.row = activeBrick.row + 1
         else:
             self._settle()
 
@@ -161,13 +161,13 @@ class GameEngine:
 
         brick = self.bricks[self._nextIndex]
         row, col = brick.startPosition(self._field.width)
-        brick = ActiveBrick(brick=brick, row=row, col=col)
+        activeBrick = ActiveBrick(brick=brick, row=row, col=col)
 
-        if not self._isValidPosition(row, col, brick.brick):
+        if not self._isValidPosition(row, col, activeBrick.brick):
             self._state = GameState.GAME_OVER
             return
 
-        self._active = brick
+        self._active = activeBrick
         self._nextIndex += 1
 
     # ------------------------------------------------------------------

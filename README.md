@@ -109,6 +109,66 @@ The advantage scales with field size — a 20 × 40 field: **~156** vs **1 600**
 
 ---
 
+## Testing Approach — TDD
+
+The project was developed following **Test-Driven Development**: tests were written before or alongside each feature, and no behaviour ships without a corresponding test covering it.
+
+The suite contains **144 tests** across 7 files. Each file maps to one module; each class inside covers one focused scenario group.
+
+### `test_brick.py`
+| Class | Scenarios covered |
+|---|---|
+| `TestBrickCreation` | Valid construction, rejection of too-few symbols |
+| `TestCellsAt` | Cell coordinates for H and V bricks at various positions |
+| `TestStartPosition` | Centered spawn column for odd/even field widths |
+| `TestFootprint` | Width and height footprint for H and V orientations |
+| `TestEquality` | Equality and hashing for use in sets/dicts |
+
+### `test_field.py`
+| Class | Scenarios covered |
+|---|---|
+| `TestFieldCreation` | Valid dimensions, rejection of zero/negative sizes |
+| `TestBoundsCheck` | In-bounds and out-of-bounds detection |
+| `TestPlaceAndRemove` | Place, remove, isEmpty, get round-trips |
+| `TestRenderRow` | Single-row string output with and without overlay |
+| `TestRender` | Full-field multi-row rendering |
+
+### `test_commands.py`
+| Class | Scenarios covered |
+|---|---|
+| `TestParseCommands` | Valid commands, mixed case, unknown characters silently ignored |
+
+### `test_input_parser.py`
+| Class | Scenarios covered |
+|---|---|
+| `TestValidInput` | Minimal input, single/multiple bricks, whitespace tolerance |
+| `TestInvalidInput` | Missing dimensions, non-integer values, bad orientation, bad symbol, wrong token length |
+| `TestFeatureFlags` | `ALLOW_UNLIMITED_BRICKS` cap behaviour, `ALLOW_DYNAMIC_BRICK_LENGTH` acceptance and rejection — each flag isolated with `monkeypatch` |
+
+### `test_match_detector.py`
+| Class | Scenarios covered |
+|---|---|
+| `TestNoMatches` | Empty field, runs of 2 (below threshold) |
+| `TestHorizontalMatches` | Exact-3, longer runs, interrupted by empty/different symbol, match at row edge |
+| `TestVerticalMatches` | Exact-3, longer runs, interrupted by gap |
+| `TestCombinedMatches` | H+V overlap (plus-shape), two separate matches in same row, real game scenario |
+
+### `test_engine.py`
+| Class | Scenarios covered |
+|---|---|
+| `TestInitialSpawn` | First brick position, centring, game-over when field blocked at spawn |
+| `TestMoveLeft` | Valid shift, boundary rejection |
+| `TestMoveRight` | Valid shift, boundary rejection for H and V bricks |
+| `TestConflictBlocking` | Shift blocked by settled brick; auto-drop blocked by settled brick; negative cases confirming blocking only fires on actual conflict |
+| `TestMaxTwoCommandsPerFrame` | Command cap enforcement |
+| `TestDropCommand` | Instant drop to bottom, drop above existing brick, command ordering |
+| `TestAutoDropAndSettle` | One row per frame, settle at field bottom, vertical settle |
+| `TestMatchRemoval` | H match cleared, V match cleared, no gravity after clear |
+| `TestNextBrickSpawn` | Second brick spawns after first settles, game-over when all bricks used, game-over when next spawn blocked |
+| `TestFullExampleScenario` | Frame-by-frame trace of the reference example from the spec |
+
+---
+
 ## Running the Game
 
 ### Locally

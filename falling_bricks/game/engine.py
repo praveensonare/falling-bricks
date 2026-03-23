@@ -143,11 +143,13 @@ class GameEngine:
         """Place active brick on the field, detect matches, spawn next brick."""
         brick = self._active
         assert brick is not None
+        placed = set()
         for row, col, symbol in brick.cells():
             self._field.place(row, col, symbol)
+            placed.add((row, col))
         self._active = None
 
-        matches = self._matchDetector.findMatches(self._field)
+        matches = self._matchDetector.findMatches(self._field, placed)
         if matches:
             self._field.removeCells(matches)
 

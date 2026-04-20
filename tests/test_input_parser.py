@@ -40,9 +40,9 @@ class TestValidInput:
         _, _, bricks = self.parser.parse("5 8 H^^* V*@^ H~.* V@~^ H***")
         assert len(bricks) == 5
 
-    def testSixthBrickIgnored(self):
-        _, _, bricks = self.parser.parse("5 8 H^^* V*@^ H~.* V@~^ H*** H...")
-        assert len(bricks) == 5
+    def testSixthBrickRaisesError(self):
+        with pytest.raises(ParseError, match="Too many bricks"):
+            self.parser.parse("5 8 H^^* V*@^ H~.* V@~^ H*** H...")
 
     def testExtraWhitespaceIgnored(self):
         width, height, bricks = self.parser.parse("  5   8   H^^*  ")
@@ -108,10 +108,16 @@ class TestFeatureFlags:
 
     # --- ALLOW_UNLIMITED_BRICKS ---
 
-    def testDefaultCapAtMaxBricks(self, monkeypatch):
+    def testExceedingMaxBricksRaisesError(self, monkeypatch):
         monkeypatch.setattr(cfg, "ALLOW_UNLIMITED_BRICKS", False)
         monkeypatch.setattr(cfg, "MAX_BRICKS", 5)
-        _, _, bricks = self.parser.parse("5 8 H^^* V*@^ H~.* V@~^ H*** H... V~~~")
+        with pytest.raises(ParseError, match="Too many bricks"):
+            self.parser.parse("5 8 H^^* V*@^ H~.* V@~^ H*** H... V~~~")
+
+    def testExactlyMaxBricksAccepted(self, monkeypatch):
+        monkeypatch.setattr(cfg, "ALLOW_UNLIMITED_BRICKS", False)
+        monkeypatch.setattr(cfg, "MAX_BRICKS", 5)
+        _, _, bricks = self.parser.parse("5 8 H^^* V*@^ H~.* V@~^ H***")
         assert len(bricks) == 5
 
     def testAllowUnlimitedBricksIgnoresCap(self, monkeypatch):
@@ -120,10 +126,16 @@ class TestFeatureFlags:
         _, _, bricks = self.parser.parse("5 8 H^^* V*@^ H~.* V@~^ H*** H... V~~~")
         assert len(bricks) == 7
 
-    def testAllowUnlimitedBricksWithCustomCap(self, monkeypatch):
+    def testCustomCapRaisesErrorWhenExceeded(self, monkeypatch):
         monkeypatch.setattr(cfg, "ALLOW_UNLIMITED_BRICKS", False)
         monkeypatch.setattr(cfg, "MAX_BRICKS", 3)
-        _, _, bricks = self.parser.parse("5 8 H^^* V*@^ H~.* V@~^")
+        with pytest.raises(ParseError, match="Too many bricks"):
+            self.parser.parse("5 8 H^^* V*@^ H~.* V@~^")
+
+    def testCustomCapAcceptsExactlyMax(self, monkeypatch):
+        monkeypatch.setattr(cfg, "ALLOW_UNLIMITED_BRICKS", False)
+        monkeypatch.setattr(cfg, "MAX_BRICKS", 3)
+        _, _, bricks = self.parser.parse("5 8 H^^* V*@^ H~.*")
         assert len(bricks) == 3
 
     # --- ALLOW_DYNAMIC_BRICK_LENGTH ---

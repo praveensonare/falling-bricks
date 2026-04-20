@@ -80,6 +80,11 @@ ERR_FIELD_DIMENSIONS: str = (
 
 ERR_MIN_SYMBOLS: str = "A brick must have at least {min} symbol."
 
+ERR_TOO_MANY_BRICKS: str = (
+    "Too many bricks: got {actual}, maximum allowed is {max}. "
+    "Please enter at most {max} bricks."
+)
+
 ERR_INVALID_RESTART: str = "Please enter S to start over or Q to quit."
 
 # ---------------------------------------------------------------------------

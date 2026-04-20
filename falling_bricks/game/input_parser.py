@@ -12,6 +12,7 @@ from falling_bricks.constants import (
     ERR_BRICK_MIN_LENGTH,
     ERR_INVALID_ORIENTATION,
     ERR_INVALID_SYMBOL,
+    ERR_TOO_MANY_BRICKS,
 )
 from falling_bricks.models.brick import Brick, Orientation
 
@@ -51,7 +52,11 @@ class InputParser:
         width = self._parsePositiveInt(tokens[0], "width")
         height = self._parsePositiveInt(tokens[1], "height")
 
-        brick_tokens = tokens[2:] if config.ALLOW_UNLIMITED_BRICKS else tokens[2:2 + config.MAX_BRICKS]
+        brick_tokens = tokens[2:]
+        if not config.ALLOW_UNLIMITED_BRICKS and len(brick_tokens) > config.MAX_BRICKS:
+            raise ParseError(
+                ERR_TOO_MANY_BRICKS.format(actual=len(brick_tokens), max=config.MAX_BRICKS)
+            )
         bricks: List[Brick] = [self._parseBrick(token) for token in brick_tokens]
 
         return width, height, bricks
